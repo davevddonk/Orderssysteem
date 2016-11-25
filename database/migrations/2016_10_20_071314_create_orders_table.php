@@ -15,13 +15,9 @@ class CreateOrdersTable extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->increments('id');
             $table->string('status');
-            $table->string('pick_up_adres_id');
-            $table->string('deliver_adres_id');
-            $table->string('sender_id');
-            $table->string('client_id');
+            $table->string('file');
             $table->string('deliver_time_til');
             $table->string('pick_up_time_from');
-            $table->string('orderref');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -37,7 +37,9 @@ Route::group(['middleware' => 'auth'], function () {
 	
 	Route::get('/Orders', ['as' => 'orders.index', 'uses' => 'OrderController@index']);
 	Route::post('/Orders/Search/{search}', ['as' => 'orders.search', 'uses' => 'OrderController@search']);
+	Route::get('/Orders/{id}', ['as' => 'orders.show', 'uses' => 'OrderController@show']);
 	Route::post('/Orders/Store', ['as' => 'orders.store', 'uses' => 'OrderController@store']);
+
 
 
 	Route::get('/Pakbonnen', ['as' => 'pakbonnen.index', 'uses' => 'PakbonController@index']);

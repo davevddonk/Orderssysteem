@@ -1,8 +1,4 @@
 <div class="col-md-2 col-xs-12 col-sm-12 col-lg-2">
-	<div class="col-md-12 visible-lg-block visible-md-block">
-		<img src="/img/img.jpg" class="img-rounded col-md-12" onerror="this.src='/img/noimg.png';">
-		<hr class="col-md-12">
-	</div>
 	<h2 class="text-capitalize text-center">{{{ $user->firstname }}} {{{ $user->lastname }}}</h2>
 	<div class="col-xs-6 col-xs-offset-3 col-sm-6 col-sm-offset-3 col-md-offset-0 col-lg-offset-0 col-md-12 col-lg-12">
 		<dl id="chauffeursOrdersData" class="dl-horizontal">

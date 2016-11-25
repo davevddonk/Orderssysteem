@@ -8,7 +8,9 @@
       <div class="modal-body">
         {{ Form::open(['route' => ['orders.store'], 'files' => true]) }}
           <div class="form-group">
-            {{ Form::file('xml', $attributes = []) }}
+            <label class="btn btn-info">
+                Selecteer een XML document <input name="xml" type="file" style="display: none;">
+            </label>
           </div>
       </div>
       <div class="modal-footer">

@@ -34,7 +34,7 @@
         <select class="form-group text-capitalize selectpicker" id="dateSearch" data-width="auto" data-actions-box="true" required data-size="10" data-live-search="true" title='Selecteer een datum' autofocus>
             <option value="0">Vandaag</option>
             @foreach($dates as $date)
-                <option value="{{{ $date->created_at }}}" >{{{ date_format(new DateTime($date->created_at), 'd-m-Y') }}}</option>
+                <option value="{{{ $date }}}" >{{{ date_format(new DateTime($date), 'd-m-Y') }}}</option>
             @endforeach
         </select>
     {{ Form::close()}}

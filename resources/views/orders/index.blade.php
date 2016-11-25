@@ -10,7 +10,7 @@
             <select class="form-group text-capitalize selectpicker" id="orderSearch" data-width="auto" data-actions-box="true" required data-size="10" data-live-search="true" title='Selecteer een order' autofocus>
                     <option value="0">Geen</option>
                     @foreach($allOrders as $order)
-                        <option value="{{ $order->id }}">{{ $order->id }} - {{ $order->orderref }}</option>
+                        <option value="{{ $order->id }}">{{{ $order->id }}}</option>
                     @endforeach
             </select>
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ordersCreateModal">Orders aanmaken</button>
@@ -25,12 +25,13 @@
         <thead>
             <tr>
                 <th class="col-md-1">id</th>
-                <th>status</th>
-                <th>Ophaal adres</th>
-                <th>Aflever adres</th>
+                <th class="col-md-1">status</th>
+                <th>opdrachtgever</th>
+                <th>straat</th>
+                <th>adres</th>
+                <th class="col-md-2">ophalen vanaf</th>
                 <th class="col-md-2">afleveren voor</th>
-                <th class="col-md-2">ophalen na</th>
-                <th class="col-md-1">Actie</th>
+                <th class="col-md-1">actie</th>
             </tr>
         </thead>
         <tbody>
@@ -38,11 +39,10 @@
                 <tr>
                     <td>{{ $order->id }}</td>
                     <td>{{ $order->status }}</td>
-                    <td>{{ $order->pick_up_adres_id }}</td>
-                    <td>{{ $order->deliver_adres_id }}</td>
-                    <td>{{ $order->deliver_time_til }}</td>
-                    <td>{{ $order->pick_up_time_from }}</td>
-                    <td><a href="#" class="btn btn-xs btn-primary">Bekijken</a></td>
+                    @include('info.orders')
+                    <td>{{{ date_format(new DateTime($order->pick_up_time_from), 'H:i | d-m-Y') }}}</td>
+                    <td>{{{ date_format(new DateTime($order->deliver_time_til), 'H:i | d-m-Y') }}}</td>
+                    <td><a href="/Orders/{{{ $order->id }}}" class="btn btn-xs btn-primary">Bekijken</a></td>
                 </tr>
             @endforeach
         </tbody>         

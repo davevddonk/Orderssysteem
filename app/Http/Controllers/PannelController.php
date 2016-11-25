@@ -30,10 +30,16 @@ class PannelController extends Controller
     {
         $date = new DateTime('today');
         $dates = DB::table('orders')->where('created_at', '!=', $date)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
+        $aDates = [];
+        foreach ($dates as $date) {
+            $date = date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00";
+            array_push($aDates, $date);
+        }
+        $aDates = array_unique($aDates);
         $orders = DB::table('orders')->where('created_at', '=', $date)->orderBy('created_at', 'desc')->get();
 
 
-        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $date, 'dates' => $dates]);
+        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $date, 'dates' => $aDates]);
         return back()->withInput();
     }
 
@@ -115,10 +121,22 @@ class PannelController extends Controller
         if ($search == 0) {
             return Redirect::route('pannel.index');
         }
-        $dates = DB::table('orders')->where('created_at', '!=', $search)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
-        $orders = DB::table('orders')->where('created_at', '=', $search)->get();
+        $midnight =  date_format(new DateTime($search), 'Y-m-d') . " 23:59:59";
+        $morning =  date_format(new DateTime($search), 'Y-m-d') . " 00:00:00";
 
-        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $search, 'dates' => $dates]);
+        $dates = DB::table('orders')->where('created_at', '!=', $morning)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
+        $aDates = [];
+        foreach ($dates as $date) {
+            if ($morning != date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00") {
+                $date = date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00";
+                array_push($aDates, $date);
+            }
+        }
+        $aDates = array_unique($aDates);
+
+        $orders = DB::table('orders')->where([['created_at', '>=', $search], ['created_at', '<=', $midnight]])->get();
+
+        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $search, 'dates' => $aDates]);
         return back()->withInput();
     }
 }
