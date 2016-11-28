@@ -12,7 +12,7 @@
 	<hr>
 </div>
 <div id="chauffeursOrders" class="col-md-10 col-lg-10 col-sm-12 col-xs-12">
-	    <h2>Orders - Bezig</h2>
+	    <h2>Orders - Bezig <a id="backbutton" class="btn btn-info pull-right"><i class="fa fa-chevron-left" aria-hidden="true"></i> Terug</a></h2>
     	<table class="table table-hover table-bordered">
 	        <thead>
 	            <tr>

@@ -31,7 +31,7 @@ class OrderController extends Controller
     {
         $orders = DB::table('orders')->orderBy('pick_up_time_from', 'desc')->paginate(15);
 
-        $allOrders = DB::table('orders')->orderBy('pick_up_time_from', 'desc')->get();
+        $allOrders = DB::table('orders')->orderBy('id', 'desc')->get();
 
         if(Auth::user()->rights == "planner" || Auth::user()->rights == "administratie") return view('orders.index', ['orders' => $orders, 'allOrders' => $allOrders]);
         return back()->withInput();
@@ -234,7 +234,7 @@ class OrderController extends Controller
         }
         $orders = DB::table('orders')->where('id', '=', $search)->paginate(15);
 
-        $allOrders = DB::table('orders')->orderBy('created_at', 'asc')->get();
+        $allOrders = DB::table('orders')->orderBy('id', 'desc')->get();
 
         if(Auth::user()->rights == "planner") return view('orders.index', ['orders' => $orders, 'allOrders' => $allOrders]);
         return back()->withInput();

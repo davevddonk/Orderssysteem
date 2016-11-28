@@ -54,4 +54,8 @@
 		format : "DD-MM-YYYY"
 	});
 
+	$('#backbutton').on('click', function(e){
+		parent.history.back();
+	});
+
 }(jQuery);

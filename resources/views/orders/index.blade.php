@@ -47,6 +47,9 @@
             @endforeach
         </tbody>         
     </table>
+    <div class="pull-right">
+        {{ $orders->appends([])->links() }}
+    </div>
     @include('modals.orders.ordersCreateModal')
     @include('modals.orders.ordersCreateXMLModal')
 </div>

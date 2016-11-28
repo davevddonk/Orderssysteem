@@ -6,7 +6,8 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
         <link href="{{ URL::asset('css/font-awesome.css') }}" rel="stylesheet" type="text/css" >
         <link href="{{ URL::asset('css/bootstrap-select.min.css') }}" rel="stylesheet" type="text/css" >
-        <link href="{{ URL::asset('css/orderssysteem.css') }}" rel="stylesheet" type="text/css" >        
+        <link href="{{ URL::asset('css/orderssysteem.css') }}" rel="stylesheet" type="text/css" >
+        <link href="{{ URL::asset('css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" >      
     </head>
     <body>
         @include('layouts.navigation')

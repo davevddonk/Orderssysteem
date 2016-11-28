@@ -16,7 +16,7 @@
                     <tr>
                         <td class="col-md-2">{{{ $order->id }}}</td>
                         <td>{{{ $order->status }}}</td>
-                        <td class="col-md-2"><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
+                        <td class="col-md-2"><a href="/Orders/{{{ $order->id }}}" class="btn btn-primary btn-xs">Bekijken</a></td>
                     </tr>  
                 </tbody>
             @endforeach

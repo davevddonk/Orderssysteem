@@ -28,6 +28,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::post('/Overzicht/Search/{search}', ['as' => 'pannel.search', 'uses' => 'PannelController@search']);
 
 	Route::get('/Planningen', ['as' => 'planningen.index', 'uses' => 'PlanningController@index']);
+	Route::post('/Planningen/Store', ['as' => 'planningen.store', 'uses' => 'PlanningController@store']);
+	
 
 	Route::get('/Wagens', ['as' => 'vehicles.index', 'uses' => 'VehiclesController@index']);
 	Route::post('/Wagens/Search/{search}', ['as' => 'vehicles.search', 'uses' => 'VehiclesController@search']);

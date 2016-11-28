@@ -36,8 +36,10 @@ class PannelController extends Controller
             array_push($aDates, $date);
         }
         $aDates = array_unique($aDates);
-        $orders = DB::table('orders')->where('created_at', '=', $date)->orderBy('created_at', 'desc')->get();
 
+        $midnight =  date_format(new DateTime($date), 'Y-m-d') . " 23:59:59";
+
+        $orders = DB::table('orders')->where([['created_at', '>=', $date], ['created_at', '<=', $midnight]])->get();
 
         if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $date, 'dates' => $aDates]);
         return back()->withInput();
