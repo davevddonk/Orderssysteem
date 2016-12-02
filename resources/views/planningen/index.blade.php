@@ -45,7 +45,7 @@
             @else       
                 <thead>
                     <tr>
-                        <th colspan="3">Er zijn geen planningen</th>
+                        <th colspan="3">Er is geen planning</th>
                     </tr>
                 </thead>
             @endif         

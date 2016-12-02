@@ -53,29 +53,64 @@ class PlanningController extends Controller
      */
     public function store(Request $request)
     {
+        $iAmmountDevided = 0;
+        $addressFrom = "Sterrenlaan 10, Eindhoven";
+
         $fullname =  Auth::user()->firstname . " " . Auth::user()->lastname;
+
         $date = date_format(new DateTime($request->date), 'Y-m-d'). " 00:00:00";
         $midnight = date_format(new DateTime($date), 'Y-m-d'). " 23:59:59";
+
         $orders = DB::table('orders')->where([['created_at', '>=', $date], ['created_at', '<=', $midnight]])->get();
         $planningId = DB::table('plannings')->max('id') + 1;
 
+        
         $chauffeursCount = DB::table('users')->where('rights', '=', 'chauffeur')->count();
-        $ordersCount = 0;
+        $ordersForChauffeurs = array_chunk($orders, $chauffeursCount);
 
-        //link all orders to the planning
-        foreach ($orders as $order) {
-            $ordersCount++;
+       if (count($orders) == 0) {
+            Session::flash('message', 'Er zijn geen orders om te plannen.'); 
+            Session::flash('alert-class', 'alert-danger');
+            return back()->withInput();
+        }
 
-            $xml = file_get_contents(public_path() . $order->file);
-            $parsedXML = Parser::xml($xml);
+        foreach ($ordersForChauffeurs as $ordersForChauffeur) { // 3x
+            foreach ($ordersForChauffeur as $orderForChauffeur) { // 3x , 3x, 2x
+                foreach ($orders as $order) {
+                    $xml = file_get_contents(public_path() . $order->file);
+                    $parsedXML = Parser::xml($xml);
 
-            $addressFrom  = "Sterrenlaan 10, Eindhoven";
-            $addressTo = $parsedXML['afleveradres']['straat'] . " " . $parsedXML['afleveradres']['huisnr'] . ", " . $parsedXML['afleveradres']['plaats'];
-            $json = file_get_contents('http://maps.googleapis.com/maps/api/distancematrix/json?origins=Sterrenlaan%2010,%20Eindhoven&destinations=Ferdinand%20Bolstraat%2025,%20Best&language=en-EN&sensor=false');
-            $decoded = json_decode($json);
-        }   
-        $orderPerChauffeur = array_chunk($orders, $chauffeursCount);
-        dd($orderPerChauffeur, $decoded);
+                    if ($order->status == "recieved") {
+                        $addressTo = $parsedXML['afleveradres']['straat'] . " " . $parsedXML['afleveradres']['huisnr'] . ", " . $parsedXML['afleveradres']['plaats'];
+                        $json = file_get_contents("http://maps.googleapis.com/maps/api/distancematrix/json?origins='" . urlencode($addressFrom)  . "'&destinations='" . urlencode($addressTo) . "'&language=en-EN&sensor=false");
+                        $decoded = json_decode($json, true);
+                        $distanceArray[] = [$order->id, $decoded['rows'][0]['elements'][0]['distance']['value']];
+                    }
+                }
+
+                for ($i=0; $i < count($distanceArray); $i++) { 
+                    $lowest[] = $distanceArray[$i][1];
+                }
+
+                foreach ($distanceArray as $distance) {
+                    if (min($lowest) == $distance[1]) {
+                        DB::table('orders')->where('id', '=', $distance[0])->update(['status' => 'planning']);
+                        $iAmmountDevided++;
+                        $aDevided[] = [$distance[0], $distance[1]];
+                        foreach ($orders as $order) {
+                            $xml = file_get_contents(public_path() . $order->file);
+                            $parsedXML = Parser::xml($xml);
+                            if($order->id == $distance[0]){
+                               $addressFrom = $parsedXML['afleveradres']['straat'] . " " . $parsedXML['afleveradres']['huisnr'] . ", " . $parsedXML['afleveradres']['plaats']; 
+                            }
+                        }
+                    }
+                }
+                unset($distanceArray);
+            }
+        }
+        
+        dd($ordersForChauffeurs);
 
         //checking if selected date exists
         $planningen = DB::table('plannings')->get();
@@ -89,7 +124,6 @@ class PlanningController extends Controller
 
         //link all orders to the planning
         foreach ($orders as $order) {
-            $ordersCount++;
             DB::table('planning_orders')->insert([
                 'id' => null, 
                 'planning_id' => $planningId, 
