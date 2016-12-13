@@ -2,76 +2,79 @@
 
 @section('content')
 <div class="col-md-3">
-    <h2>Orders</h2>
-    <hr>
-    <table class="table table-hover table-condensed table-bordered">
-        @if(!empty($orders))
-            <thead>
-                <tr>
-                    <th colspan="3">{{ date_format(new DateTime($date), 'd-m-Y') }}</th>
-                </tr>
-            </thead>
-            @foreach($orders as $order)
-                <tbody>
-                    <tr>
-                        <td class="col-md-2">{{{ $order->id }}}</td>
-                        <td>{{{ $order->status }}}</td>
-                        <td class="col-md-2"><a href="/Orders/{{{ $order->id }}}" class="btn btn-primary btn-xs">Bekijken</a></td>
-                    </tr>  
-                </tbody>
-            @endforeach
-        @else
-            <thead>
-                <tr>
-                    <th colspan="3">Er zijn geen orders</th>
-                </tr>
-            </thead>
-        @endif
-    </table>
+	<h2>Orders</h2>
+	<hr>
+	<div style="height:80% !important;overflow: auto;">
+		<table class="table table-hover table-condensed table-bordered">
+			@if(!empty($orders))
+				<thead>
+					<tr>
+						<th colspan="3">{{ date_format(new DateTime($date), 'd-m-Y') }}</th>
+					</tr>
+				</thead>
+				@foreach($orders as $order)
+					<tbody>
+						<tr>
+							<td class="col-md-2">{{{ $order->id }}}</td>
+							<td>{{{ $order->status }}}</td>
+							<td class="col-md-2"><a href="/Orders/{{{ $order->id }}}" class="btn btn-primary btn-xs">Bekijken</a></td>
+						</tr>  
+					</tbody>
+				@endforeach
+			@else
+				<thead>
+					<tr>
+						<th colspan="3">Er zijn geen orders</th>
+					</tr>
+				</thead>
+			@endif
+		</table>
+	</div>
 </div>
-<div class="col-md-9" style="border-left: solid #000000">
-    {{ Form::open(['id' => 'searchForm', 'class' => '']) }}
-        <select class="form-group text-capitalize selectpicker" id="dateSearch" data-width="auto" data-actions-box="true" required data-size="10" data-live-search="true" title='Selecteer een datum' autofocus>
-            <option value="0">Vandaag</option>
-            @foreach($dates as $date)
-                <option value="{{{ $date }}}" >{{{ date_format(new DateTime($date), 'd-m-Y') }}}</option>
-            @endforeach
-        </select>
-    {{ Form::close()}}
-    <hr>
-    @for ($i = 1; $i < 13; $i++)
-        <div class="col-md-4">
-            <table class="table table-hover table-condensed table-bordered">
-                <thead>
-                    <tr>
-                        <th colspan="3">Chauffeur {{ $i }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="col-md-2">{{ $i }}</td>
-                        <td>Voltooid</td>
-                        <td class="col-md-2"><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-                    </tr>
-                    <tr>
-                        <td>{{ $i }}</td>
-                        <td>Voltooid</td>
-                        <td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-                    </tr>
-                    <tr>
-                        <td>{{ $i }}</td>
-                        <td>Voltooid</td>
-                        <td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-                    </tr>
-                    <tr class="danger">
-                        <td>{{ $i }}</td>
-                        <td>Gefaald</td>
-                        <td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-                    </tr>   
-                </tbody>
-                
-            </table>
-        </div>
-    @endfor
+<div class="col-md-9" style="border-left: solid #000000;">
+	{{ Form::open(['id' => 'searchForm', 'class' => '']) }}
+		<select class="form-group text-capitalize selectpicker" id="dateSearch" data-width="auto" data-actions-box="true" required data-size="10" data-live-search="true" title='Selecteer een datum' autofocus>
+			<option value="0">Vandaag</option>
+			@foreach($dates as $date)
+				<option value="{{{ $date }}}" >{{{ date_format(new DateTime($date), 'd-m-Y') }}}</option>
+			@endforeach
+		</select>
+	{{ Form::close()}}
+	<hr>
+	<div style="height:80% !important;overflow: auto;">
+		@for ($i = 1; $i < 13; $i++)
+			<div class="col-md-4">
+				<table class="table table-hover table-condensed table-bordered">
+					<thead>
+						<tr>
+							<th colspan="3">Chauffeur {{ $i }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td class="col-md-2">{{ $i }}</td>
+							<td>Voltooid</td>
+							<td class="col-md-2"><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
+						</tr>
+						<tr>
+							<td>{{ $i }}</td>
+							<td>Voltooid</td>
+							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
+						</tr>
+						<tr>
+							<td>{{ $i }}</td>
+							<td>Voltooid</td>
+							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
+						</tr>
+						<tr class="danger">
+							<td>{{ $i }}</td>
+							<td>Gefaald</td>
+							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
+						</tr>   
+					</tbody>  
+				</table>
+			</div>
+		@endfor
+	</div>
 </div>
 @endsection

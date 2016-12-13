@@ -45,4 +45,5 @@ Route::group(['middleware' => 'auth'], function () {
 
 
 	Route::get('/Pakbonnen', ['as' => 'pakbonnen.index', 'uses' => 'PakbonController@index']);
+	Route::get('/Pakbonnen/{id}', ['as' => 'pakbonnen.show', 'uses' => 'PakbonController@show']);
 });

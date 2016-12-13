@@ -3,6 +3,10 @@
         border-right: solid #000000;
     }
 
+    #PakbonData2 {
+    	display: none;
+    }
+
     #OrdersData {
     	display: none;
     }
@@ -12,6 +16,9 @@
 @media only screen and (max-width: 992px) {
 
     #OrdersData2 {
+    	display: none;
+    }
+    #PakbonData {
     	display: none;
     }
 

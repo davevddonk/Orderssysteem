@@ -25,6 +25,8 @@
                 <div class="alert {{ Session::get('alert-class', 'alert-info') }} alert-dismissible" role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     {{ Session::get('message') }}
+                    <br/>
+                    <small>{{ Session::get('sub-message') }}</small>
                 </div>
             </div>
         @endif

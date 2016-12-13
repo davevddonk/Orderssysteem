@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Auth;
+use Auth, DB, DateTime, Parser;
 
 use Illuminate\Http\Request;
 
@@ -27,8 +27,13 @@ class PakbonController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->rights == "chauffeur") return view('pakbonnen.index');
-        else return back()->withInput();
+        $date = new DateTime('2016-11-28 00:00:00');
+        $midnight =  date_format($date, 'Y-m-d') . " 23:59:59";
+
+        $orders = DB::table('orders')->where([['created_at', '>=', $date], ['created_at', '<=', $midnight]])->get();
+
+        if(Auth::user()->rights == "chauffeur") return view('pakbonnen.index', ['orders' => $orders, 'date' => $date]);
+        return back()->withInput();
     }
 
     /**
@@ -60,7 +65,13 @@ class PakbonController extends Controller
      */
     public function show($id)
     {
-        //
+        $order = DB::table('orders')->where('id', '=', $id)->first();
+        $xml = file_get_contents(public_path() . $order->file);
+        $parsedXML = Parser::xml($xml);
+        $locatie = $parsedXML['afleveradres']['straat'] ." " . $parsedXML['afleveradres']['huisnr'] .", ". $parsedXML['afleveradres']['plaats'] ." ". $parsedXML['afleveradres']['postcode'];
+
+        if(Auth::user()->rights == "chauffeur") return view('pakbonnen.show', ['order' => $order, 'locatie' => $locatie]);
+        return back()->withInput();
     }
 
     /**
