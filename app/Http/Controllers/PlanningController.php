@@ -31,7 +31,9 @@ class PlanningController extends Controller
 
 		$todaysPlanning = DB::table('plannings')->where('created_at', '=', new DateTime('today'))->get();
 
-		if(Auth::user()->rights == "planner") return view('planningen.index', ['planningen' => $planningen, 'todaysPlanning' => $todaysPlanning]);
+		$orders = DB::table('orders')->get();
+
+		if(Auth::user()->rights == "planner") return view('planningen.index', ['planningen' => $planningen, 'todaysPlanning' => $todaysPlanning, 'orders' => $orders]);
 		return back()->withInput();
 	}
 
@@ -128,13 +130,14 @@ class PlanningController extends Controller
 			return back()->withInput();
 		}
 
-		//Get the JSON from the google API
-		$decoded = json_decode(file_get_contents("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . urlencode($addressFrom)  . "&destinations=". urlencode($addressTo) ."&key=AIzaSyAF1kKqZv3fUppjiqAXFhI346Okaagyang"), true); //AIzaSyCRxTFjK3Thxtls6zhi90UYfI9WYlLNHkE //AIzaSyAF1kKqZv3fUppjiqAXFhI346Okaagyang
 
+		Session::put('decoded', json_decode(file_get_contents("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . urlencode($addressFrom)  . "&destinations=". urlencode($addressTo) ."&key=AIzaSyAF1kKqZv3fUppjiqAXFhI346Okaagyang"), true));
+		//Get the JSON from the google API
+		// $decoded = json_decode(file_get_contents("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . urlencode($addressFrom)  . "&destinations=". urlencode($addressTo) ."&key=AIzaSyCRxTFjK3Thxtls6zhi90UYfI9WYlLNHkE"), true); //AIzaSyCRxTFjK3Thxtls6zhi90UYfI9WYlLNHkE //AIzaSyAF1kKqZv3fUppjiqAXFhI346Okaagyang
 		//Check if there is an error
-		if(isset($decoded["error_message"])){
+		if(isset(Session::get('decoded')["error_message"])){
 			Session::flash('message', 'Er is een probleem met de API, neem contact op met Team AO.'); 
-			Session::flash('sub-message', $decoded['error_message']); 
+			Session::flash('sub-message', Session::get('decoded')['error_message']); 
 			Session::flash('alert-class', 'alert-danger');
 			return back()->withInput();
 		}
@@ -142,31 +145,29 @@ class PlanningController extends Controller
 		$i = 0;
 
 		//Make an array with the distances between all the locations
-		foreach ($decoded['rows'][0]['elements'] as $elements) {
+		foreach (Session::get('decoded')['rows'][0]['elements'] as $elements) {
 			$distanceArray[] = [$ids[$i], $elements['distance']['value']];
 			$lowest[] = $elements['distance']['value'];
 			$i++;
 		}
 
 		$c = 0;
-		$nextLocation = null;
-		$doneLocations = null;
 		//Foreach chauffeur in ordersForChauffeurs
 		foreach ($ordersForChauffeurs as $ordersForChauffeur) { //3x
 			//Foreach order per chauffeur
 			foreach ($ordersForChauffeur as $orderForChauffeur) { //3x, 3x, 2x
-				$returned = $this->giveChauffeurOrders($distanceArray, $lowest, $decoded, $chauffeurs, $c, $ids, $nextLocation, $doneLocations);
-				$distanceArray = $returned[0];
-				$lowest = $returned[1];
-				$nextLocation = $returned[2];
-				$doneLocations = $returned[3];
-				var_dump($doneLocations);
+				$data = $this->giveChauffeurOrders($chauffeurs[$c], $lowest, $orders);
+				echo var_dump($data) . "</br></br>";
+				if (isset($lowest)) {
+					unset($lowest);
+				}
+				foreach ($data as $nData) {
+					$lowest[] = $nData['distance']['value'];
+				}				
 			}
-			$nextLocation = null;
 			$c++;
 		}
-		dd($decoded, $distanceArray, $keys);
-
+		dd(Session::get('decoded'));
 		//Make a new planning
 		DB::table('plannings')->insert([
 			'id' => null,
@@ -193,25 +194,63 @@ class PlanningController extends Controller
 
 	}
 
-	private function giveChauffeurOrders($distanceArray, $lowest, $decoded, $chauffeurs, $c, $ids, $nextLocation, $doneLocations)
+	private function giveChauffeurOrders($chauffeurInfo, $lowest, $orders){
+		$locationsData = Session::get('decoded');
+		if (min($lowest) == 0) {
+			array_forget($lowest, [array_search(0, $lowest)]);
+		}
+
+		$iElement = 0;
+		$iRow = 0;
+
+		foreach ($locationsData['rows'] as $locationData) {
+			foreach ($locationData['elements'] as $data) {
+				if (min($lowest) == $data['distance']['value']) {
+					foreach ($orders as $order) {
+						$xml = file_get_contents(public_path() . $order->file);
+						$parsedXML = Parser::xml($xml);
+
+						$sLocation = $parsedXML['afleveradres']['straat'] . " " . $parsedXML['afleveradres']['huisnr'] . ", ". $parsedXML['afleveradres']['postcode'] . " " . $parsedXML['afleveradres']['plaats']. ", Netherlands";
+						if ($sLocation == $locationsData['destination_addresses'][$iElement]) {
+							$nextLocation = $locationsData['rows'][$iElement]['elements'];
+							unset($locationsData['rows'][$iElement]);
+							unset($locationsData['destination_addresses'][$iElement]);
+							unset($locationsData['origin_addresses'][$iElement + 1]);
+							foreach ($locationsData['rows'] as &$lData) {
+								if ($iRow >= $iElement) {
+									unset($lData['elements'][$iElement - 1]);
+								}
+								else{
+									unset($lData['elements'][$iElement]);	
+								}
+								
+							}
+							Session::forget('decoded');
+							Session::put('decoded', $locationsData);
+							return $nextLocation;
+						}
+					}
+				}
+				$iElement++;
+			}
+			$iElement = 0;
+			$iRow++;
+		}
+	}
+
+	private function giveOrders($distanceArray, $lowest, $chauffeurs, $c, $ids, $nextLocation, $doneLocations)
 	{
+		$decoded = Session::get('decoded');
 		foreach ($distanceArray as $distance) {
 			//If the lowest distance is 0 forget that distance
 			if (min($lowest) == 0) {
 				array_forget($lowest, [array_search(0, $lowest)]);
-			}
-
-			if (isset($doneLocations) && isset($nextLocation)) {
-				foreach ($doneLocations as $location) {
-					unset($nextLocation[$location]);
-				}
-			}
-			
+			}	
 
 			//If to check if a value is the lowest
 			if (min($lowest) == $distance[1]) {
 				echo "Orderid = " . $distance[0] . ", Afstand = " . $distance[1] . "<br/>";
-				echo "chauffeur id = " . $chauffeurs[$c]->id . "<br/><br/>";
+				echo "chauffeur id = " . $chauffeurs[$c]->id . "<br/>";
 
 				//Make a link between the orders and chauffeurs
 				DB::table('chauffeur_orders')->insert([
@@ -222,10 +261,14 @@ class PlanningController extends Controller
 				]);
 
 				// Clear the distanceArray to make a new one
-				unset($distanceArray);
+				if (isset($distanceArray)) {
+					unset($distanceArray);
+				}
 
 				//Clear the lowest array to make a new one
-				unset($lowest);
+				if (isset($lowest)) {
+					unset($lowest);
+				}
 
 				//Make an array with the keys of the decoded array
 				$keys = array_keys($decoded['rows']);
@@ -235,7 +278,6 @@ class PlanningController extends Controller
 				if (! isset($nextLocation)) {
 					//Foreach element in decoded['rows']
 					foreach ($decoded['rows'][$i]['elements'] as $elements) {
-						var_dump($keys);
 						if ($elements['distance']['value'] != 0) {
 							if ($elements['distance']['value'] == $distance[1]){
 								foreach ($decoded['rows'][$i]['elements'] as $element) {
@@ -248,6 +290,9 @@ class PlanningController extends Controller
 									unset($decoded['rows'][$distance[0] - 1]);
 								}
 								$keys = array_keys($decoded['rows']);
+								Session::forget('decoded');
+								Session::put('decoded', $decoded);
+								echo var_dump($keys) . "</br>";
 							}
 							$i++;
 						}
@@ -262,12 +307,15 @@ class PlanningController extends Controller
 								$lowest[] = $element['distance']['value'];
 							}
 							if(isset($decoded['rows'][$distance[0]])) {
-								$nextLocation = null;
+								unset($nextLocation);
 								$nextLocation = array_pull($decoded['rows'][$distance[0] - 1], 'elements' );
 								$doneLocations[] = $distance[0] - 1;
 								unset($decoded['rows'][$distance[0] - 1]);
 							}
 							$keys = array_keys($decoded['rows']);
+							Session::forget('decoded');
+							Session::put('decoded', $decoded);
+							echo var_dump($nextLocation) . "</br>";
 						}
 						$i++;
 					}

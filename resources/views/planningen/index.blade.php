@@ -34,7 +34,7 @@
                     @foreach($todaysPlanning as $planning)
                         <tr>
                             <td>{{{ date_format(new DateTime($planning->created_at), 'd-m-Y') }}}</td>
-                            <td>test</td>
+                            @include('info.planning')
                             <td>test</td>
                             <td>test</td>
                             <td>{{{ $planning->created_by }}}</td>
@@ -68,7 +68,7 @@
                         @foreach($planningen as $planning)
                             <tr>
                                 <td>{{{ date_format(new DateTime($planning->created_at), 'd-m-Y') }}}</td>
-                                <td>test</td>
+                                @include('info.planning')
                                 <td>test</td>
                                 <td>test</td>
                                 <td>{{{ $planning->created_by }}}</td>

@@ -69,7 +69,7 @@ class PakbonController extends Controller
         $xml = file_get_contents(public_path() . $order->file);
         $parsedXML = Parser::xml($xml);
         $locatie = $parsedXML['afleveradres']['straat'] ." " . $parsedXML['afleveradres']['huisnr'] .", ". $parsedXML['afleveradres']['plaats'] ." ". $parsedXML['afleveradres']['postcode'];
-
+        
         if(Auth::user()->rights == "chauffeur") return view('pakbonnen.show', ['order' => $order, 'locatie' => $locatie]);
         return back()->withInput();
     }
@@ -94,7 +94,7 @@ class PakbonController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        dd($id);
     }
 
     /**

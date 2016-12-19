@@ -23,13 +23,11 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::put('/Chauffeurs/{id}', ['as' => 'chauffeurs.update', 'uses' => 'ChauffeurController@update']);
 	Route::delete('/Chauffeurs/{id}', ['as' => 'chauffeurs.destroy', 'uses' => 'ChauffeurController@destroy']);
 
-
 	Route::get('/Overzicht', ['as' => 'pannel.index', 'uses' => 'PannelController@index']);
 	Route::post('/Overzicht/Search/{search}', ['as' => 'pannel.search', 'uses' => 'PannelController@search']);
 
 	Route::get('/Planningen', ['as' => 'planningen.index', 'uses' => 'PlanningController@index']);
 	Route::post('/Planningen/Store', ['as' => 'planningen.store', 'uses' => 'PlanningController@store']);
-	
 
 	Route::get('/Wagens', ['as' => 'vehicles.index', 'uses' => 'VehiclesController@index']);
 	Route::post('/Wagens/Search/{search}', ['as' => 'vehicles.search', 'uses' => 'VehiclesController@search']);
@@ -42,8 +40,8 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/Orders/{id}', ['as' => 'orders.show', 'uses' => 'OrderController@show']);
 	Route::post('/Orders/Store', ['as' => 'orders.store', 'uses' => 'OrderController@store']);
 
-
-
 	Route::get('/Pakbonnen', ['as' => 'pakbonnen.index', 'uses' => 'PakbonController@index']);
 	Route::get('/Pakbonnen/{id}', ['as' => 'pakbonnen.show', 'uses' => 'PakbonController@show']);
+	Route::put('/Pakbonnen/{id}', ['as' => 'pakbonnen.update', 'uses' => 'PakbonController@update']);
+
 });
