@@ -18,6 +18,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 	Route::get('/Chauffeurs', ['as' => 'chauffeurs.index', 'uses' => 'ChauffeurController@index']);
 	Route::post('/Chauffeurs/Search/{search}', ['as' => 'chauffeurs.search', 'uses' => 'ChauffeurController@search']);
+	Route::post('/Chauffeurs/{id}/Search/{search}', ['as' => 'chauffeurs.searchdate', 'uses' => 'ChauffeurController@searchDate']);
 	Route::get('/Chauffeurs/{id}', ['as' => 'chauffeurs.show', 'uses' => 'ChauffeurController@show']);
 	Route::post('/Chauffeurs/Store', ['as' => 'chauffeurs.store', 'uses' => 'ChauffeurController@store']);
 	Route::put('/Chauffeurs/{id}', ['as' => 'chauffeurs.update', 'uses' => 'ChauffeurController@update']);

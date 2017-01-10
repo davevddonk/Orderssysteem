@@ -29,19 +29,39 @@ class PannelController extends Controller
     public function index()
     {
         $today = new DateTime('today');
-        $dates = DB::table('orders')->where('created_at', '!=', $today)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
+        $midnight =  date_format($today, 'Y-m-d') . " 23:59:59";
+        $dates = DB::table('orders')->where('deliver_time_til', '!=', $today)->distinct('deliver_time_til')->select('id', 'deliver_time_til')->orderBy('deliver_time_til', 'desc')->get();
         $aDates = [];
+        $aOrders = [];
         foreach ($dates as $date) {
-            $date = date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00";
+            $date = date_format(new DateTime($date->deliver_time_til), 'Y-m-d'). " 00:00:00";
             array_push($aDates, $date);
         }
         $aDates = array_unique($aDates);
 
-        $midnight =  date_format(new DateTime($date), 'Y-m-d') . " 23:59:59";
+        $ordersFromChauffeurs = DB::table('users')->where('rights', '=', 'chauffeur')
+            ->join('chauffeur_orders', 'users.id', '=', 'chauffeur_orders.chauffeur_id')
+            ->join('orders', 'chauffeur_orders.order_id', '=', 'orders.id')
+            ->where([['orders.deliver_time_til', '>=', $today],['orders.deliver_time_til', '<=', $midnight]])
+            ->select('orders.id as orderID', 'users.id as userID', 'orders.*', 'users.*')
+            ->orderBy('orderID', 'asc')
+            ->get();
 
-        $orders = DB::table('orders')->where([['created_at', '>=', $today], ['created_at', '<=', $midnight]])->get();
+        $ammount = DB::table('users')->where('rights', '=', 'chauffeur')->count();
 
-        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $today, 'dates' => $aDates]);
+        for($i=0; $i < $ammount; $i++){
+            foreach ($ordersFromChauffeurs as $ordersFromChauffeur) {
+                if ($ordersFromChauffeur->userID == $i) {
+                    $aOrders = [];
+                }
+            }
+        }
+
+        $midnight = date_format(new DateTime($date), 'Y-m-d') . " 23:59:59";
+
+        $orders = DB::table('orders')->where([['deliver_time_til', '>=', $today], ['deliver_time_til', '<=', $midnight]])->get();
+        dd($aDates, $today);
+        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $today, 'dates' => $aDates, 'ordersFromChauffeurs' => $ordersFromChauffeurs, 'ammount' => $ammount]);
         return back()->withInput();
     }
 
@@ -123,6 +143,7 @@ class PannelController extends Controller
         if ($search == 0) {
             return Redirect::route('pannel.index');
         }
+        $today = new DateTime('today');
         $midnight =  date_format(new DateTime($search), 'Y-m-d') . " 23:59:59";
         $morning =  date_format(new DateTime($search), 'Y-m-d') . " 00:00:00";
 
@@ -136,9 +157,29 @@ class PannelController extends Controller
         }
         $aDates = array_unique($aDates);
 
+        $ordersFromChauffeurs = DB::table('users')->where('rights', '=', 'chauffeur')
+            ->join('chauffeur_orders', 'users.id', '=', 'chauffeur_orders.chauffeur_id')
+            ->join('orders', 'chauffeur_orders.order_id', '=', 'orders.id')
+            ->where([['orders.deliver_time_til', '>=', $today],['orders.deliver_time_til', '<=', $midnight]])
+            ->select('orders.id as orderID', 'users.id as userID', 'orders.*', 'users.*')
+            ->orderBy('orderID', 'asc')
+            ->get();
+
+        $ammount = DB::table('users')->where('rights', '=', 'chauffeur')->count();
+
+        for($i=0; $i < $ammount; $i++){
+            foreach ($ordersFromChauffeurs as $ordersFromChauffeur) {
+                if ($ordersFromChauffeur->userID == $i) {
+                    $aOrders = [];
+                }
+            }
+        }
+
+        
+
         $orders = DB::table('orders')->where([['created_at', '>=', $search], ['created_at', '<=', $midnight]])->get();
 
-        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders, 'date' => $search, 'dates' => $aDates]);
+        if(Auth::user()->rights == "planner") return view('pannel.index', ['orders' => $orders,'ordersFromChauffeurs' => $ordersFromChauffeurs, 'date' => $search, 'dates' => $aDates, 'ammount' => $ammount]);
         return back()->withInput();
     }
 }

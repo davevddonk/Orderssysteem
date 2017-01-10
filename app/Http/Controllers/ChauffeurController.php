@@ -103,8 +103,42 @@ class ChauffeurController extends Controller
                 ['rights', '=', 'chauffeur'], 
                 ['id', '=', $id],
             ])->first();
-        
-        if(Auth::user()->rights == "planner") return view('chauffeurs.show', ['user' => $user]);
+
+        $today = new DateTime('today');
+        $midnight = date_format($today, 'Y-m-d') . " 23:59:59";
+        $dates = DB::table('orders')->where('created_at', '!=', $today)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
+        $aDates = [];
+        foreach ($dates as $date) {
+            $date = date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00";
+            array_push($aDates, $date);
+        }
+        $aDates = array_unique($aDates);
+
+        $orders = DB::table('users')->where([['users.rights', '=', 'chauffeur'],['users.id', '=', $id],])
+            ->join('chauffeur_orders', 'users.id', '=', 'chauffeur_orders.chauffeur_id')
+            ->join('orders', 'chauffeur_orders.order_id', '=', 'orders.id')
+            ->where([['orders.deliver_time_til', '>=', $today],['orders.deliver_time_til', '<=', $midnight]])
+            ->select('orders.*')
+            ->orderBy('id', 'asc')
+            ->get();
+
+
+        $plannedCount = 0;
+        $successCount = 0;
+        $failCount = 0;
+        foreach ($orders as $order) {
+            if ($order->status == "planned") {
+                $plannedCount++;
+            }
+            if ($order->status == "success") {
+                $successCount++;
+            }
+            if ($order->status == "failed") {
+                $failCount++;
+            }
+        }
+
+        if(Auth::user()->rights == "planner") return view('chauffeurs.show', ['user' => $user, 'orders' => $orders, 'plannedCount' => $plannedCount, 'successCount' => $successCount, 'failCount' => $failCount, 'dates' => $aDates]);
         return back()->withInput();
     }
 
@@ -183,5 +217,63 @@ class ChauffeurController extends Controller
 
         if(Auth::user()->rights == "planner") return view('chauffeurs.index', ['users' => $users, 'allUsers' => $allUsers]);
         return back()->withInput();
+    }
+
+    /**
+     * Search for a specific chauffeur.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function searchDate($id, $search)
+    {
+        if ($search == 0) {
+            return Redirect::route('pannel.index');
+        }
+
+        $user = User::where([
+            ['rights', '=', 'chauffeur'], 
+            ['id', '=', $id],
+        ])->first();
+
+        $today = new DateTime($search);
+        $midnight = date_format(new DateTime($search), 'Y-m-d') . " 23:59:59";
+
+        $dates = DB::table('orders')->where('created_at', '!=', $today)->distinct('created_at')->select('id', 'created_at')->orderBy('created_at', 'desc')->get();
+        $aDates = [];
+        foreach ($dates as $date) {
+            $date = date_format(new DateTime($date->created_at), 'Y-m-d'). " 00:00:00";
+            array_push($aDates, $date);
+        }
+        $aDates = array_unique($aDates);
+
+        $orders = DB::table('users')->where([['users.rights', '=', 'chauffeur'],['users.id', '=', $id],])
+            ->join('chauffeur_orders', 'users.id', '=', 'chauffeur_orders.chauffeur_id')
+            ->join('orders', 'chauffeur_orders.order_id', '=', 'orders.id')
+            ->where([['orders.deliver_time_til', '>=', $today],['orders.deliver_time_til', '<=', $midnight]])
+            ->select('orders.*')
+            ->orderBy('id', 'asc')
+            ->get();
+
+
+
+        $plannedCount = 0;
+        $successCount = 0;
+        $failCount = 0;
+        foreach ($orders as $order) {
+            if ($order->status == "planned") {
+                $plannedCount++;
+            }
+            if ($order->status == "success") {
+                $successCount++;
+            }
+            if ($order->status == "failed") {
+                $failCount++;
+            }
+        }
+
+        if(Auth::user()->rights == "planner") return view('chauffeurs.show', ['user' => $user, 'orders' => $orders, 'plannedCount' => $plannedCount, 'successCount' => $successCount, 'failCount' => $failCount, 'dates' => $aDates]);
+        return back()->withInput();
+
     }
 }

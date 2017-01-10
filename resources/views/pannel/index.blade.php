@@ -16,7 +16,7 @@
 					<tbody>
 						<tr>
 							<td class="col-md-2">{{{ $order->id }}}</td>
-							<td>{{{ $order->status }}}</td>
+							<td>@if($order->status == "planned")Bezig @endif @if($order->status == "recieved")Ontvangen @endif @if($order->status == "success")Afgerond @endif</td>
 							<td class="col-md-2"><a href="/Orders/{{{ $order->id }}}" class="btn btn-primary btn-xs">Bekijken</a></td>
 						</tr>  
 					</tbody>
@@ -42,39 +42,30 @@
 	{{ Form::close()}}
 	<hr>
 	<div style="height:80% !important;overflow: auto;">
-		@for ($i = 1; $i < 13; $i++)
-			<div class="col-md-4">
-				<table class="table table-hover table-condensed table-bordered">
-					<thead>
-						<tr>
-							<th colspan="3">Chauffeur {{ $i }}</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td class="col-md-2">{{ $i }}</td>
-							<td>Voltooid</td>
-							<td class="col-md-2"><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-						</tr>
-						<tr>
-							<td>{{ $i }}</td>
-							<td>Voltooid</td>
-							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-						</tr>
-						<tr>
-							<td>{{ $i }}</td>
-							<td>Voltooid</td>
-							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-						</tr>
-						<tr class="danger">
-							<td>{{ $i }}</td>
-							<td>Gefaald</td>
-							<td><button type="button" class="btn btn-primary btn-xs">Bekijken</button></td>
-						</tr>   
-					</tbody>  
-				</table>
-			</div>
-		@endfor
+		<div class="col-md-4">
+			<table class="table table-hover table-condensed table-bordered">
+				<thead>
+					@for($i=0; $i < $ammount; $i++)
+						@foreach($ordersFromChauffeurs as $ordersFromChauffeur)
+							@if($ordersFromChauffeur->userID == $i)
+								<tr>
+									<th colspan="2">{{{ $ordersFromChauffeur->firstname }}} {{{ $ordersFromChauffeur->lastname }}}</th>
+									<th><a href="/Chauffeurs/{{{$ordersFromChauffeur->userID}}}" class="btn btn-xs btn-info">Bekijken</a></th>
+								</tr>
+							</thead>
+							<tbody>
+					
+							<tr>	
+								<td class="col-md-2">{{{ $ordersFromChauffeur->orderID }}}</td>
+								<td>@if($ordersFromChauffeur->status == "planned")Bezig @endif @if($ordersFromChauffeur->status == "recieved")Ontvangen @endif @if($ordersFromChauffeur->status == "success")Afgerond @endif</td>
+								<td class="col-md-2"><a href="/Orders/{{{$ordersFromChauffeur->orderID}}}" class="btn btn-xs btn-primary">Bekijken</a></td>
+							</tr>
+						@endif
+					@endforeach
+					@endfor
+				</tbody>  
+			</table>
+		</div>
 	</div>
 </div>
 @endsection
